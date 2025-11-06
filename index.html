@@ -175,27 +175,18 @@
                         </div>
                     </section>
                     <section id="profile-section" class="section">
-                        <!-- Logged In View -->
-                        <div id="profile-view" style="display:none;">
-                             <div class="card" style="display:flex;gap:18px;align-items:center">
-                                <div class="profile-pic" id="profilePic" style="background-size: cover; background-position: center;"></div>
-                                <div style="flex:1">
-                                    <div id="profileName" style="font-weight:700"></div>
-                                    <div id="profileEmail" style="color:var(--muted)"></div>
-                                </div>
-                             </div>
-                             <div class="card">
-                                 <div class="settings-item"><i class="bi bi-key-fill"></i><div>Account</div></div>
-                                 <div class="settings-item"><i class="bi bi-lock-fill"></i><div>Privacy</div></div>
-                                 <div class="settings-item"><i class="bi bi-emoji-smile-fill"></i><div>Avatar</div></div>
-                                 <div class="settings-item text-danger" id="signOutBtn"><i class="bi bi-box-arrow-right"></i><div>Sign Out</div></div>
-                             </div>
+                        <div class="card" style="display:flex;gap:18px;align-items:center">
+                            <div class="profile-pic" id="profilePic"></div>
+                            <div style="flex:1">
+                                <div id="profileName" style="font-weight:700">MD UTSHOB KHAN</div>
+                                <div style="color:var(--muted)">Hey there! I am using WhatsApp.</div>
+                            </div>
+                            <div><button class="btn btn-outline-secondary" id="editProfileBtn">Edit</button></div>
                         </div>
-                        <!-- Logged Out View -->
-                        <div id="login-view" class="card text-center">
-                            <h5>Join WhatsApp Channel</h5>
-                            <p class="text-muted">Sign in or create an account to continue.</p>
-                            <button class="btn btn-success" id="googleSignInBtn"><i class="bi bi-google"></i> Continue with Google</button>
+                        <div class="card">
+                            <div class="settings-item"><i class="bi bi-key-fill"></i><div>Account</div></div>
+                            <div class="settings-item"><i class="bi bi-lock-fill"></i><div>Privacy</div></div>
+                            <div class="settings-item"><i class="bi bi-emoji-smile-fill"></i><div>Avatar</div></div>
                         </div>
                     </section>
                 </div>
@@ -284,16 +275,13 @@
                 <button class="btn btn-primary mt-3" id="addImo">Add your Imo</button>
             </div>
         </div>
+        <input type="file" id="avatarInput" accept="image/*" style="display:none">
     </div>
     
     <script type="module">
-        // Firebase Core and Services
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
         import { getDatabase, ref, push, onChildAdded, onValue, set, query, limitToLast, off } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-database.js";
         import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-storage.js";
-        // NEW: Import Firebase Authentication services
-        import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
-
 
         const firebaseConfig = {
           apiKey: "AIzaSyBufKt1I2nnKIdqBYzLmuGwNIv2rWbFJUE",
@@ -305,19 +293,16 @@
           measurementId: "G-G7J2JNMPDD"
         };
 
-        // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const database = getDatabase(app);
         const storage = getStorage(app);
-        // NEW: Initialize Firebase Auth
-        const auth = getAuth(app);
-        const provider = new GoogleAuthProvider();
 
         document.addEventListener('DOMContentLoaded', () => {
             // State variables
-            let currentUserId; // Changed from currentUserNumber to currentUserId
+            let currentUserNumber;
             let currentChatId;
             let currentMessagesRef;
+            let username = localStorage.getItem('wa_name') || 'MD UTSHOB KHAN';
             let balance = parseFloat(localStorage.getItem('wa_balance') || '45.00');
             let adsWatched = parseInt(localStorage.getItem('wa_ads') || '0', 10);
             
@@ -327,16 +312,8 @@
             const fabBtn = document.getElementById('fabBtn');
             const fabMenu = document.getElementById('fabMenu');
             const regOverlay = document.getElementById('regOverlay');
-            
-            // Profile elements
-            const profileView = document.getElementById('profile-view');
-            const loginView = document.getElementById('login-view');
             const profileNameEl = document.getElementById('profileName');
-            const profileEmailEl = document.getElementById('profileEmail');
             const profilePicEl = document.getElementById('profilePic');
-            const googleSignInBtn = document.getElementById('googleSignInBtn');
-            const signOutBtn = document.getElementById('signOutBtn');
-
             const headerChipBalance = document.getElementById('headerChipBalance');
             const walletBalanceEl = document.getElementById('walletBalance');
             const currentBalanceEl = document.getElementById('currentBalance');
@@ -350,50 +327,16 @@
                 if(currentBalanceEl) currentBalanceEl.textContent = `BDT ${balance.toFixed(2)}`;
                 if(adProgressText) adProgressText.textContent = `Completed: ${adsWatched} / 50`;
                 if(progressBar) progressBar.style.width = `${(adsWatched / 50) * 100}%`;
-            };
-
-            // --- AUTHENTICATION LOGIC ---
-            onAuthStateChanged(auth, user => {
-                if (user) {
-                    // User is signed in
-                    currentUserId = user.uid; // Use Firebase UID as the unique identifier
-                    
-                    profileView.style.display = 'block';
-                    loginView.style.display = 'none';
-
-                    profileNameEl.textContent = user.displayName || 'No Name';
-                    profileEmailEl.textContent = user.email;
-                    if (user.photoURL) {
-                        profilePicEl.style.backgroundImage = `url(${user.photoURL})`;
-                        profilePicEl.textContent = '';
-                    } else {
-                         profilePicEl.style.backgroundImage = 'none';
-                         profilePicEl.textContent = user.displayName ? user.displayName.charAt(0) : 'U';
-                    }
-                    loadChatList(); // Load chat list after user logs in
-                } else {
-                    // User is signed out
-                    currentUserId = null;
-                    profileView.style.display = 'none';
-                    loginView.style.display = 'block';
-                    chatListContainer.innerHTML = '<p class="p-3 text-muted">Please sign in to view your chats.</p>';
+                
+                profileNameEl.textContent = username;
+                if (!localStorage.getItem('wa_avatar')) {
+                    profilePicEl.textContent = username.charAt(0);
                 }
-            });
-
-            googleSignInBtn.addEventListener('click', () => {
-                signInWithPopup(auth, provider).catch(error => {
-                    console.error("Google Sign-In Error:", error);
-                    alert("Could not sign in with Google. Please try again.");
-                });
-            });
-
-            signOutBtn.addEventListener('click', () => {
-                signOut(auth).catch(error => console.error("Sign Out Error:", error));
-            });
+            };
 
             // --- ALL APP LOGIC ---
 
-            // Registration Overlay Logic (can be kept or removed)
+            // Registration Overlay Logic
             if (!localStorage.getItem('registrationSkipped')) {
                 regOverlay.style.display = 'flex';
             }
@@ -422,14 +365,7 @@
 
             // Floating Pages Logic
             const allFloatingPages = document.querySelectorAll('.floating');
-            const openFloatingPage = (pageId) => {
-                if (!currentUserId && (pageId === 'inboxPage' || pageId === 'randomPage' || pageId === 'chatWindowPage')) {
-                    alert("Please sign in from the Profile tab to use chat features.");
-                    showSection('profile-section');
-                    return;
-                }
-                document.getElementById(pageId)?.classList.add('active');
-            }
+            const openFloatingPage = (pageId) => document.getElementById(pageId)?.classList.add('active');
             
             document.getElementById('openInboxBtn').addEventListener('click', () => openFloatingPage('inboxPage'));
             document.getElementById('fabInbox').addEventListener('click', () => openFloatingPage('inboxPage'));
@@ -447,7 +383,7 @@
                 });
             });
 
-            // Earning App Logic (remains unchanged)
+            // Earning App Logic
             document.getElementById('startEarning').addEventListener('click', () => {
                 document.getElementById('earning-home').style.display = 'none';
                 document.getElementById('earning-tasks').style.display = 'block';
@@ -457,7 +393,7 @@
                 document.getElementById('earning-tasks').style.display = 'none';
             });
              document.getElementById('watchReels').addEventListener('click', () => {
-                window.open('fb://reels/video', '_blank');
+                window.open('fb://reels/video', '_blank'); // Tries to open FB app
                 setTimeout(() => {
                     if (adsWatched < 50) {
                         adsWatched++;
@@ -468,9 +404,36 @@
                     } else {
                         alert("Daily limit reached!");
                     }
-                }, 2000);
+                }, 2000); // Assume video watched after 2s
             });
             document.getElementById('withdrawBtn').addEventListener('click', () => alert('১হাজার টাকার নিচে উত্তোলন সম্ভব হবে না।'));
+
+            // Profile Logic
+            document.getElementById('editProfileBtn').addEventListener('click', () => {
+                const newName = prompt('Enter new name:', username);
+                if (newName && newName.trim()) {
+                    username = newName.trim();
+                    localStorage.setItem('wa_name', username);
+                    updateUI();
+                }
+            });
+            document.getElementById('profilePic').addEventListener('click', () => document.getElementById('avatarInput').click());
+            document.getElementById('avatarInput').addEventListener('change', e => {
+                if (e.target.files && e.target.files[0]) {
+                    const reader = new FileReader();
+                    reader.onload = event => {
+                        const imgUrl = event.target.result;
+                        localStorage.setItem('wa_avatar', imgUrl);
+                        profilePicEl.style.backgroundImage = `url(${imgUrl})`;
+                        profilePicEl.textContent = '';
+                    };
+                    reader.readAsDataURL(e.target.files[0]);
+                }
+            });
+            if (localStorage.getItem('wa_avatar')) {
+                profilePicEl.style.backgroundImage = `url(${localStorage.getItem('wa_avatar')})`;
+                profilePicEl.textContent = '';
+            }
 
             // Other Button Functionalities
             document.getElementById('addSonaliBtn').addEventListener('click', () => window.open('https://sonaliewallet182-cmd.github.io/sonali-e-wallet-verification-/', '_blank'));
@@ -480,7 +443,7 @@
             document.getElementById('audioCallBtn').addEventListener('click', () => alert('Audio call feature coming soon!'));
             document.getElementById('videoCallBtn').addEventListener('click', () => alert('Video call feature coming soon!'));
             
-            // Telegram Bot Submission (remains unchanged)
+            // Telegram Bot Submission
             document.getElementById('submitBankInfo').addEventListener('click', (e) => {
                 e.preventDefault();
                 const country = document.getElementById('countryInput').value;
@@ -529,7 +492,7 @@
                 });
             });
 
-            // Dynamic Article Rendering (remains unchanged)
+            // Dynamic Article Rendering
             const articles = [
                 { title: 'প্রযুক্তির নতুন দিগন্ত', snippet: 'আর্টিফিশিয়াল ইন্টেলিজেন্স আমাদের জীবনকে বদলে দিচ্ছে...', image: 'https://placehold.co/100x100/25d366/ffffff?text=Tech' },
                 { title: 'স্বাস্থ্যকর জীবনযাপন', snippet: 'প্রতিদিনের ছোট ছোট অভ্যাসেই সুস্থ থাকা সম্ভব...', image: 'https://placehold.co/100x100/34B7F1/ffffff?text=Health' },
@@ -547,42 +510,66 @@
             `).join('');
 
 
-            // --- CHAT LOGIC (Updated for Firebase Auth) ---
+            // --- CHAT LOGIC ---
+            const setupUser = () => {
+                currentUserNumber = localStorage.getItem('wa_user_number');
+                if (!currentUserNumber) {
+                    currentUserNumber = prompt("Welcome! Please enter your phone number to use chat.", "");
+                    if (currentUserNumber && currentUserNumber.trim()) {
+                        localStorage.setItem('wa_user_number', currentUserNumber.trim());
+                    } else {
+                        alert("A phone number is required for chat.");
+                        document.getElementById('openInboxBtn').disabled = true;
+                        return;
+                    }
+                }
+                loadChatList();
+            };
+            
             const chatListContainer = document.getElementById('chatListContainer');
             const messageInput = document.getElementById('messageInput');
             const sendMessageBtn = document.getElementById('sendMessageBtn');
             const chatMessages = document.getElementById('chatMessages');
 
             document.getElementById('addFriendBtn').addEventListener('click', () => {
-                if (!currentUserId) {
-                    alert("Please sign in first."); return;
-                }
-                // NOTE: To add a friend, you now need their UID, not phone number. 
-                // This requires a way to discover users, e.g., by searching their email.
-                // For simplicity, we will assume the user knows the other user's email to start a chat.
-                const friendEmail = prompt("Enter the email of the user you want to chat with:");
-                if (friendEmail && friendEmail.trim()) {
-                     alert("User discovery feature is not implemented. This is a placeholder.");
-                     // In a real app, you would look up the UID from this email in your database.
+                const friendNumber = prompt("Enter the phone number of the user you want to chat with:");
+                if (friendNumber && friendNumber.trim() && friendNumber !== currentUserNumber) {
+                    openChatWith(friendNumber.trim());
+                } else if (friendNumber === currentUserNumber) {
+                    alert("You cannot chat with yourself.");
                 }
             });
 
-            const openChatWith = (friendId, friendData) => {
-                const chatId = [currentUserId, friendId].sort().join('_');
+            const openChatWith = (friendNumber) => {
+                const chatId = [currentUserNumber, friendNumber].sort().join('_');
                 currentChatId = chatId;
-                document.getElementById('chattingWith').innerText = friendData.name || friendId;
+                document.getElementById('chattingWith').innerText = friendNumber;
                 
-                // You would store user profiles under `users/{uid}`
-                // This part of the logic remains conceptually similar
+                set(ref(database, `users/${currentUserNumber}/chats/${friendNumber}`), { chatId: chatId, lastSeen: Date.now() });
+                set(ref(database, `users/${friendNumber}/chats/${currentUserNumber}`), { chatId: chatId, lastSeen: Date.now() });
+                
                 openFloatingPage('chatWindowPage');
                 loadMessages(chatId);
             };
 
             const loadChatList = () => {
-                if (!currentUserId) return;
-                // Chat list logic needs to be adapted. Instead of phone numbers, you'd store chats by UID.
-                // This is a placeholder as the DB structure for chats would need adjustment.
-                chatListContainer.innerHTML = '<p class="p-3 text-muted">Chat functionality needs database updates to work with User IDs.</p>';
+                if (!currentUserNumber) return;
+                const userChatsRef = ref(database, `users/${currentUserNumber}/chats`);
+                onValue(userChatsRef, (snapshot) => {
+                    chatListContainer.innerHTML = '';
+                    if (snapshot.exists()) {
+                        const chats = snapshot.val();
+                        for (const friendNumber in chats) {
+                            const item = document.createElement('div');
+                            item.className = 'chat-list-item';
+                            item.innerHTML = `<div class="avatar">${friendNumber.charAt(0)}</div><div><strong>${friendNumber}</strong></div>`;
+                            item.onclick = () => openChatWith(friendNumber);
+                            chatListContainer.appendChild(item);
+                        }
+                    } else {
+                        chatListContainer.innerHTML = '<p class="p-3 text-muted">No chats yet. Add a friend to start chatting.</p>';
+                    }
+                });
             };
 
             const loadMessages = (chatId) => {
@@ -593,7 +580,7 @@
                 onChildAdded(currentMessagesRef, (snapshot) => {
                     const message = snapshot.val();
                     const div = document.createElement('div');
-                    div.classList.add('message-bubble', message.sender === currentUserId ? 'sent' : 'received');
+                    div.classList.add('message-bubble', message.sender === currentUserNumber ? 'sent' : 'received');
                     
                     if(message.type === 'text') div.innerText = message.content;
                     else if (message.type === 'image') div.innerHTML = `<img src="${message.content}" alt="Image">`;
@@ -604,11 +591,10 @@
             };
 
             const sendMessage = (content, type = 'text') => {
-                const trimmed = content ? content.trim() : '';
-                if (!trimmed || !currentChatId) return;
-
+                const trimmed = content.trim();
+                if (!trimmed) return;
                 push(ref(database, `messages/${currentChatId}`), {
-                    sender: currentUserId, content: trimmed, type: type, timestamp: Date.now()
+                    sender: currentUserNumber, content: trimmed, type: type, timestamp: Date.now()
                 }).then(() => { if(type === 'text') messageInput.value = ''; });
             };
             
@@ -620,8 +606,7 @@
             
             fileInput.addEventListener('change', (e) => {
                 const file = e.target.files[0];
-                if (!file || !currentChatId) return;
-
+                if (!file) return;
                 const type = file.type.startsWith('image/') ? 'image' : 'video';
                 const path = `chat_files/${currentChatId}/${Date.now()}_${file.name}`;
                 uploadBytes(storageRef(storage, path), file)
@@ -632,20 +617,8 @@
 
             // Initial App Setup
             updateUI();
+            setupUser(); // For chat functionality
         });
     </script>
 </body>
-</html>```
-
-### প্রধান পরিবর্তনগুলো:
-
-1.  **Firebase Authentication যোগ করা হয়েছে:** `firebase-auth.js` ফাইলটি ইম্পোর্ট করা হয়েছে এবং `getAuth` ফাংশন ব্যবহার করে অথেন্টিকেশন সিস্টেম চালু করা হয়েছে।
-2.  **প্রোফাইল সেকশন পরিবর্তন:**
-    *   `profile-section`-এ এখন দুটি অংশ আছে: একটি লগইন করা ব্যবহারকারীর জন্য (`profile-view`) এবং অন্যটি লগইন না করা ব্যবহারকারীর জন্য (`login-view`)।
-    *   `login-view`-তে "Continue with Google" বাটন যোগ করা হয়েছে।
-    *   `profile-view`-তে ব্যবহারকারীর নাম, ইমেইল, ছবি এবং একটি "Sign Out" বাটন যোগ করা হয়েছে।
-3.  **লগইন ও লগআউট লজিক:**
-    *   `onAuthStateChanged` নামক একটি ফাংশন ব্যবহারকারীর লগইন অবস্থা পর্যবেক্ষণ করে।
-    *   যদি ব্যবহারকারী লগইন করে, তার প্রোফাইল তথ্য দেখানো হয়।
-    *   যদি ব্যবহারকারী লগআউট করে, তাহলে লগইন বাটন দেখানো হয়।
-4.  **চ্যাট সিস্টেম আপডেট:** আগের কোডে চ্যাট করার জন্য ফোন নম্বর ব্যবহার করা হতো। এখন এটিকে পরিবর্তন করে Firebase-এর ইউনিক ইউজার আইডি (`uid`) ব্যবহার করার জন্য আপডেট করা হয়েছে, যা আরও নিরাপদ।
+</html>
